@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  sales-ads-postgres-write:
+    image: bitnami/postgresql
+    container_name: sales-ads-postgres-write
+    environment:
+      POSTGRESQL_PGAUDIT_LOG: READ,WRITE
+      POSTGRESQL_LOG_HOSTNAME: true
+      POSTGRESQL_REPLICATION_MODE: master
+      POSTGRESQL_REPLICATION_USER: sales-ads-postgres-read
+      POSTGRESQL_REPLICATION_PASSWORD: sales-ads-postgres-read
+      POSTGRESQL_USERNAME: sales-ads-postgres-write
+      POSTGRESQL_PASSWORD: sales-ads-postgres-write
+      POSTGRESQL_DATABASE: sales-ads-postgres-write
+    ports:
+      - "5432:5432"
+    volumes:
+      - sales-ads-postgres-write-data:/bitnami/postgresql
+
+  sales-ads-postgres-read:
+    image: bitnami/postgresql
+    container_name: sales-ads-postgres-read
+    environment:
+      POSTGRESQL_PASSWORD: sales-ads-postgres-write
+      POSTGRESQL_MASTER_HOST: sales-ads-postgres-write
+      POSTGRESQL_PGAUDIT_LOG: READ
+      POSTGRESQL_LOG_HOSTNAME: true
+      POSTGRESQL_REPLICATION_MODE: slave
+      POSTGRESQL_REPLICATION_USER: sales-ads-postgres-read
+      POSTGRESQL_REPLICATION_PASSWORD: sales-ads-postgres-read
+      POSTGRESQL_MASTER_PORT_NUMBER: 5432
+    depends_on:
+      - sales-ads-postgres-write
+    ports:
+      - "5433:5432"
+
+volumes:
+  sales-ads-postgres-write-data:
